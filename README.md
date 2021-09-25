@@ -5,3 +5,4 @@ cors
 dotenv
 express 
 mongodb
+uuid
