@@ -8,6 +8,7 @@ const mongo = require("./mongo");
 
 // Routes
 const productRoutes = require("./routes/product.routes");
+const cartRoutes = require("./routes/cart.routes");
 const authRoutes = require("./routes/auth.routes");
 
 const authService = require("./services/auth.services");
@@ -25,6 +26,7 @@ async function load() {
 
     app.use(authService.validateToken);
 
+    app.use("/cart", cartRoutes);
     app.use("/products", productRoutes);
 
     app.listen(process.env.PORT, () =>

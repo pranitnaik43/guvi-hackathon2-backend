@@ -61,7 +61,7 @@ const service = {
     // Generate Token
     const token = await jwt.sign({ _id: data._id }, process.env.AUTH_SECRET);
 
-    res.send({ accessToken: token });
+    res.send({ accessToken: token, userId: data._id, isAdmin: data.isAdmin });
   },
   async validateToken(req, res, next) {
     try {
