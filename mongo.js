@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb");
 
-const client = new MongoClient(process.env.MONGODB_LOCAL_URL, { useNewUrlParser: true, useUnifiedTopology: false });
+const client = new MongoClient(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: false });
 
 const mongo = {
   products: null,
