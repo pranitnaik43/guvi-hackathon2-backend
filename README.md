@@ -6,3 +6,6 @@ dotenv
 express 
 mongodb
 uuid
+joi
+jsonwebtoken
+bcrypt

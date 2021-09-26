@@ -4,6 +4,8 @@ const client = new MongoClient(process.env.MONGODB_LOCAL_URL, { useNewUrlParser:
 
 const mongo = {
   products: null,
+  categories: null,
+  users: null,
 
   async connect() {
     await client.connect(); // Connecting to DB
@@ -11,10 +13,8 @@ const mongo = {
     console.log("Mongo DB Connected");
 
     this.products = db.collection("products");
-  },
-  
-  disconnect() {
-    client.close();
+    this.categories = db.collection("categories");
+    this.users = db.collection("users");
   }
 };
 
