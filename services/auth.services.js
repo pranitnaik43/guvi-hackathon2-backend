@@ -27,41 +27,43 @@ const service = {
     console.log("requested");
     // Validate Request Body
     const { error } = await regBody.validate(req.body);
-    if (error) return res.send({ message: error.details[0].message });
+    if (error) return res.status(400).send({ message: error.details[0].message });
+    //status 400 - The server cannot or will not process the request due to an apparent client error
 
     // Check User Already Exists
     const data = await this.findByEmail(body.email);
-    if (data) return res.send({ message: "Email already exists" });
+    if (data) return res.status(409).send({ message: "Email already exists" });
 
     // Encrypt Password
     const salt = await bcrypt.genSalt(10);
     body.password = await bcrypt.hash(body.password, salt);
 
     // Insert User to DB
-    await this.createUser(body);
+    let userCreated = await this.createUser(body);
+    console.log(userCreated);
 
-    res.send({ message: "Signup Done" });
+    res.status(200).send({ message: "Signup Done" });
   },
   async signIn(req, res) {
     const body = req.body;
 
     // Validate Request Body
     const { error } = await signBody.validate(req.body);
-    if (error) return res.send({ message: error.details[0].message });
+    if (error) return res.status(400).send({ message: error.details[0].message });
 
     // Check User Already Exists
     const data = await this.findByEmail(body.email);
     if (!data)
-      return res.send({ message: "User doesn't exist. Please signup" });
+      return res.status(409).send({ message: "User doesn't exist. Please signup" });
 
     // Check Password
     const valid = await bcrypt.compare(req.body.password, data.password);
-    if (!valid) return res.send({ message: "User credentials doesn't match" });
+    if (!valid) return res.status(401).send({ message: "User credentials doesn't match" });
 
     // Generate Token
     const token = await jwt.sign({ _id: data._id }, process.env.AUTH_SECRET);
 
-    res.send({ accessToken: token, userId: data._id, isAdmin: data.isAdmin });
+    res.status(200).send({ accessToken: token, userId: data._id, isAdmin: data.isAdmin });
   },
   async validateToken(req, res, next) {
     try {

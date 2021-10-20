@@ -25,6 +25,10 @@ async function load() {
     app.use("/auth", authRoutes);
 
     app.use(authService.validateToken);
+    // app.use((req,res) => {
+    //   console.log(req.url);
+    //   console.log(res);
+    // });
 
     app.use("/cart", cartRoutes);
     app.use("/products", productRoutes);
@@ -67,7 +71,7 @@ async function populateDB() {
   .then(function (response) {
     console.log(JSON.stringify(response.data));
     response.data.forEach(product => {
-      mongo.products.insertOne({name: "Product"+product.name, price: price, category: null});
+      mongo.products.insertOne({name: "Product_"+product.name, price: product.price, category: null});
     });
     // mongo.products.insertMany(response.data);
   })
@@ -76,7 +80,7 @@ async function populateDB() {
   });
 
   for(var i=1; i<6; i++) {
-    mongo.categories.insertOne({name: "Cat"+i});
+    mongo.categories.insertOne({name: "Category_"+i});
   }
 
   var a = await mongo.products.find().toArray();
