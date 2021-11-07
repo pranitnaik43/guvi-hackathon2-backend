@@ -10,6 +10,8 @@ const mongo = require("./mongo");
 const productRoutes = require("./routes/product.routes");
 const cartRoutes = require("./routes/cart.routes");
 const authRoutes = require("./routes/auth.routes");
+const categoryRoutes = require("./routes/category.routes");
+
 
 const authService = require("./services/auth.services");
 
@@ -24,7 +26,7 @@ async function load() {
 
     app.use("/auth", authRoutes);
 
-    app.use(authService.validateToken);
+    app.use(authService.validateAccessToken);
     // app.use((req,res) => {
     //   console.log(req.url);
     //   console.log(res);
@@ -32,6 +34,7 @@ async function load() {
 
     app.use("/cart", cartRoutes);
     app.use("/products", productRoutes);
+    app.use("/categories", categoryRoutes);
 
     app.listen(process.env.PORT, () =>
       console.log(`Server running at port ${process.env.PORT}`)

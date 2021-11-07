@@ -1,6 +1,6 @@
 const router = require("express").Router();
 
-const service = require("../services/product.services");
+const service = require("../services/category.services");
 const authService = require("../services/auth.services");
 
 router.get("/", service.findAll);
