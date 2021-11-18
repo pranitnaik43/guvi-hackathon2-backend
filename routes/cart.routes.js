@@ -3,7 +3,8 @@ const router = require("express").Router();
 const service = require("../services/cart.services");
 
 router.get("/", service.find);
-router.post("/insertProduct", (req, res) => service.addProductToCart(req, res));
-router.delete("/removeProduct", (req, res) => service.removeProductFromCart(req, res));
+router.post("/addProduct", service.addProductToCart);
+router.post("/removeProduct", service.removeProductFromCart);
+router.delete("/", service.empty);
 
 module.exports = router;

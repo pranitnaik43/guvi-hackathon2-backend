@@ -11,11 +11,12 @@ const productRoutes = require("./routes/product.routes");
 const cartRoutes = require("./routes/cart.routes");
 const authRoutes = require("./routes/auth.routes");
 const categoryRoutes = require("./routes/category.routes");
-
+const orderRoutes = require("./routes/orders.routes");
 
 const authService = require("./services/auth.services");
 
 const app = express();
+const PORT = (process.env.PORT) ? (process.env.PORT) : 3001;
 
 async function load() {
   try {
@@ -27,17 +28,14 @@ async function load() {
     app.use("/auth", authRoutes);
 
     app.use(authService.validateAccessToken);
-    // app.use((req,res) => {
-    //   console.log(req.url);
-    //   console.log(res);
-    // });
 
     app.use("/cart", cartRoutes);
     app.use("/products", productRoutes);
     app.use("/categories", categoryRoutes);
+    app.use("/orders", orderRoutes);
 
-    app.listen(process.env.PORT, () =>
-      console.log(`Server running at port ${process.env.PORT}`)
+    app.listen(PORT, () =>
+      console.log(`Server running at port ${PORT}`)
     );
   } catch (err) {
     console.log(err);
