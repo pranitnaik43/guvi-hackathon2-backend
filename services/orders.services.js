@@ -8,11 +8,12 @@ const db = require("../mongo");
 const orderBody = Joi.object({
   productDetails: Joi.array().items({
                       _id: Joi.string(),
-                      category: Joi.string().allow(null, '').optional(),
+                      category: Joi.array().allow(null).optional(),
                       name: Joi.string().required(),
                       pricePerUnit: Joi.number().required(),
                       price: Joi.number().required(),
                       quantity: Joi.number().integer().required(),
+                      thumbnail: Joi.object().optional()
                     })
 });
 

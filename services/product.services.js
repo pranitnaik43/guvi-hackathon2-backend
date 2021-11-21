@@ -1,32 +1,39 @@
 const { ObjectId } = require("mongodb");
 const Joi = require("joi");
+const multer  = require('multer');
+const path = require("path");
 
 const db = require("../mongo");
 
 const productBody = Joi.object({
   name: Joi.string().required(),
   price: Joi.number().required(),
-  category: Joi.array().required()
+  category: Joi.string().optional().allow(null, "")
 });
 
-const updateProduct = async (productId, productBody) => {
-  try {
-    //check if product exists
-    const data = await db.products.findOne({ _id: new ObjectId(productId) });
-    if(!data) {
-      return { error: { message: "Product does not exist" }};
-    }
+const supportedThumnbnailMimeTypes = ['image/jpeg', 'image/webp', 'image/png'];
 
-    await db.products.updateOne(
-      { _id: new ObjectId(productId) },
-      { $set: { ...productBody } }
-    );
-    return { success: { message: "Product updated successfully" }};
-  } catch(err) {
-    console.log(err);
-    return { error: { message: "Operation failed" }};
+//using multer for saving thumbnails
+const storage = multer.diskStorage({
+  destination: async function (req, file, cb) {
+    //Validate Request Body
+    const { error } = await productBody.validate(req.body);
+    if (error) cb({ message: error.details[0].message });
+
+    if (file.fieldname === "thumbnail" && supportedThumnbnailMimeTypes.includes(file.mimetype)) {  //image file
+      cb(null, 'public/thumbnails')
+    } else {
+      console.log("invalidFileType: ",file.mimetype);
+      cb({ message: 'Mime type not supported' })
+    }
+  },
+  filename: (req, file, cb) => {
+    let extension = path.extname(file.originalname);
+    let fileNameWithoutExt = path.basename(file.originalname, extension);
+    cb(null, fileNameWithoutExt + '-' + Date.now() + extension);
   }
-}
+})
+const upload = multer({ storage: storage }).any();
 
 const service = {
   async findAll(req, res) {
@@ -44,18 +51,35 @@ const service = {
   },
   async insert(req, res) {
     try {
-      // Validate Request Body
-      const { error } = await productBody.validate(req.body);
-      if (error) return res.send({ error: { message: error.details[0].message }});
+      upload(req, res, async (err) => {
+        if (err) {
+          return res.send({ error: { message: "Error in saving file: "+err.message }});
+        }
+        
+        //check if the file were stored
+        if(!req.files) { //this file is added by multer after storing
+          return res.send({ error: { message: "Error in saving file" }});
+        }
 
-      //check if product already exists
-      const data = await db.products.findOne({ name: req.body.name });
-      if(data) {
-        return res.send({ error: { message: "Product already exists" }});
-      }
+        //check if product already exists
+        const data = await db.products.findOne({ name: req.body.name });
+        if(data) {
+          return res.send({ error: { message: "Product already exists" }});
+        }
 
-      await db.products.insertOne(req.body);
-      res.send({ success: { message: "Product added successfully" }});
+        req.files.forEach(file => {
+          req.body['thumbnail'] = file;
+        });
+
+        //convert category json string to object
+        if(req.body.category) {
+          req.body.category = JSON.parse(req.body.category);
+        }
+        // console.log("check",req.body, req.files);
+
+        await db.products.insertOne(req.body);
+        res.send({ success: { message: "Product added successfully" }});
+      })
     } catch(err) {
       console.log(err);
       res.send({ error: { message: "Operation failed" }});
@@ -63,12 +87,36 @@ const service = {
   },
   async updateById(req, res) {
     try {
-      // Validate Request Body
-      const { error } = await productBody.validate(req.body);
-      if (error) return res.send({ error: { message: error.details[0].message }});
+      upload(req, res, async (err) => {
+        if (err) {
+          return res.send({ error: { message: "Error in saving file: "+err.message }});
+        }
+        
+        //check if the file were stored
+        if(!req.files) { //this file is added by multer after storing
+          return res.send({ error: { message: "Error in saving file" }});
+        }
 
-      let result = await updateProduct(req.params.id, req.body);
-      res.send(result);
+        let productId = req.params.id
+        //check if product already exists
+        const product = await db.products.findOne({ _id: new ObjectId(productId) });
+        if(!product) {
+          return res.send({ error: { message: "Product does not exist" }});
+        }
+
+        req.files.forEach(file => {
+          req.body['thumbnail'] = file;
+        });
+
+        //convert category json string to object
+        if(req.body.category) {
+          req.body.category = JSON.parse(req.body.category);
+        }
+        // console.log("check",req.body, req.files);
+
+        await db.products.updateOne({_id: new ObjectId(productId)}, { $set: { ...req.body } });
+        res.send({ success: { message: "Product added successfully" }});
+      })
     } catch(err) {
       console.log(err);
       res.send({ error: { message: "Operation failed" }});
@@ -92,7 +140,6 @@ const service = {
   async removeCategoryForProducts(category_id) {
     try {
       const products = await db.products.find().toArray();
-      console.log("check123");
       await Promise.all(products.map(async product => {
         let categories = product.category;
         if(categories) {

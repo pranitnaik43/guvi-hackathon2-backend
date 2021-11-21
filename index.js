@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require('axios');
+const path = require("path");
 require("dotenv").config();
 
 // Mongo
@@ -23,7 +24,13 @@ async function load() {
     await mongo.connect();
 
     app.use(express.json());    //body params -> json
+    app.use(express.urlencoded({
+      extended: true
+    })); //required parsing of url-encoded form data
     app.use(cors());    // allow Cross-Origin Resource sharing
+
+    //allow access to images and songs
+    app.use('/thumbnail', express.static(path.join(__dirname, 'public', 'thumbnails')))
 
     app.use("/auth", authRoutes);
 
