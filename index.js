@@ -29,9 +29,9 @@ async function load() {
     })); //required parsing of url-encoded form data
     app.use(cors());    // allow Cross-Origin Resource sharing
 
-    //allow access to images and songs
+    //allow access to images
     app.use('/thumbnail', express.static(path.join(__dirname, 'public', 'thumbnails')))
-
+    
     app.use("/auth", authRoutes);
 
     app.use(authService.validateAccessToken);

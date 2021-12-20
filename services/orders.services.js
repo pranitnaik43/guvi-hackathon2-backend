@@ -13,8 +13,9 @@ const orderBody = Joi.object({
                       pricePerUnit: Joi.number().required(),
                       price: Joi.number().required(),
                       quantity: Joi.number().integer().required(),
-                      thumbnail: Joi.object().optional()
-                    })
+                      thumbnail: Joi.string().optional()
+                    }),
+  timestamp: Joi.string()
 });
 
 const updateOrderAllowedParams = Joi.object({
@@ -62,11 +63,10 @@ const service = {
 
       let total = 0;
       let productDetails = req.body.productDetails;
-      // console.log(productDetails);
       productDetails.forEach(element => {
         total += element.price;
       });
-      // console.log(total);
+
       let response = await axios({
         url: "https://api.razorpay.com/v1/orders",
         method: "POST",
@@ -83,13 +83,10 @@ const service = {
 
       // console.log(response);
       if(response && response.data){
-        await db.orders.insertOne({ userId: req.userId, productDetails, orderId: response.data.id, orderDetails: response.data, paymentStatus: orderPaymentStatus.PENDING, timestamp: new Date() });
+        await db.orders.insertOne({ userId: req.userId, productDetails, orderId: response.data.id, orderDetails: response.data, paymentStatus: orderPaymentStatus.PENDING, timestamp: req.body.timestamp });
         return res.send(response.data);
       } 
       res.send({error: {message: "Error in creating order"}});
-      
-
-      // res.send({success: {message: "Successfully added to cart"}});
     }
     catch(e) {
       console.log("Error in adding product to cart: ", e);
