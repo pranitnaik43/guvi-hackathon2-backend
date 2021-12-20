@@ -35,7 +35,7 @@ const service = {
   async getAllOrders(req, res) {
     try {
       let userId = req.userId;
-      let orders = await db.orders.find({ userId }).toArray();
+      let orders = await db.orders.find({ userId, paymentStatus: orderPaymentStatus.PAID }).toArray();
       res.send(orders);
     }
     catch(e) {
